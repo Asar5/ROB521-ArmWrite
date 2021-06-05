@@ -4,6 +4,7 @@
 from Segmentation import Segmentation
 import time
 import numpy as np
+import pickle
 
 
 def letter_H(start_point, height, width):
@@ -141,4 +142,5 @@ if __name__ == '__main__':
     # point_listx, point_listy = seg1.generate_semicircle(0, 20, 8, 3, 1)
     # print(point_listy)
     O = letter_O(letter_origin, height, width)
+    np.save("letter_O", O)
     print(O)

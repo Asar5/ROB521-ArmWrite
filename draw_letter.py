@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import user_input
 
 
 class Draw:
@@ -97,8 +98,7 @@ class Draw:
         :return: new_array: New numpy array of coordinates in terms of start coordinates
         """
         for i in range(0, self.num_of_chars):
-            start_coords = [self.all_coords_dict[i][1][0], \
-                           self.all_coords_dict[i][1][1], 0] #self.start_coords[0], self.start_coords[1], 0
+            start_coords = [self.all_coords_dict[i][1][0], self.all_coords_dict[i][1][1], 0]
             add_to_array = np.asarray(start_coords) - np.asarray(self.letter_origin)
             new_array = letter_array[i] + add_to_array
             self.all_coords_dict[i].append(new_array)
@@ -106,7 +106,7 @@ class Draw:
 
 
 if __name__ == '__main__':
-    word_to_draw = ['A', 'S', 'S', 'H']#, 'O', 'L', 'E']
+    word_to_draw = user_input.take_user_input() #['A', 'S', 'S', 'H']#, 'O', 'L', 'E']
     workspace_limits = [(-15, 12), (15, 28)]
     letter_bounding_box = (3, 5/3, (0, 20, 8))
     gap_btw_letters = 1

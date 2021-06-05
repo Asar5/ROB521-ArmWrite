@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import numpy as np
+
 
 class Draw:
     """
@@ -19,12 +21,14 @@ class Draw:
                 |._______________|
         (x1, y1)
 
-        :param  letter_limits: (breadth, ratio) Bounding box inside which every letter will be written.
-        breadth = breadth of box (cms), ratio = length:breadth.
+        :param  letter_limits: (breadth, ratio, (x, y, z) Bounding box inside which every letter will be written.
+        breadth = breadth of box (cms), ratio = length:breadth, (x, y, z): Origin coordinates of bounding box (in terms of
+        world coordinates)
         :param gap: gap we want to leave between letters (in cms).
         :param start_spacing: (r, u) What space we want to maintain from the right and upper boundary (in cms) (we are writing
         upside-down). NO NEGATIVE VALUES. JUST A MEASURE OF LENGTH
         """
+        self.list_of_chars = list_of_chars
         self.num_of_chars = len(list_of_chars)
         self.boundary_limits = boundary_limits
         self.x1 = boundary_limits[0][0]
@@ -41,8 +45,9 @@ class Draw:
 
         self.letter_width = letter_limits[0]
         self.letter_len = letter_limits[1]*self.letter_width
+        self.letter_origin = letter_limits[2]
 
-        self.all_coords_list = []
+        self.all_coords_dict = {}
 
         self.gap = gap
 
@@ -64,11 +69,11 @@ class Draw:
 
     def det_coords_all_letters(self):
         """
-        This function returns a list  which is of the same length as the number of characheters.
+        This function returns a dict which is of the same length as the number of characters.
         The list consists of starting coordinates of every letter that needs to be drawn, with the correct spacing
-        :return: self.all_coords_list: List of starting coords of each letter
+        :return: self.all_coords_dict: Dictionary of starting coords of each letter
         """
-        self.all_coords_list = []
+        self.all_coords_dict = {}
         for i in range(0, self.num_of_chars):
             if i == 0:
                 (x_start, y_start) = self._det_start_coords()
@@ -80,19 +85,40 @@ class Draw:
             if x <= self.x1:
                 print("Going out of boundary for {}th letter! Please change conditions and restart".format(i+1))
                 raise ValueError
-            self.all_coords_list.append((x, y))
+            self.all_coords_dict.update({i: [self.list_of_chars[i], (x,y)]})
 
-        return self.all_coords_list
+        return self.all_coords_dict
+
+    def transform_coords_to_start_pos(self, letter_array):
+        """
+        This method takes in the letter path and tranforms the coordinates  in the  path in to the location they should
+        start from
+        :param letter_array: Numpy array of the letter coordinates
+        :return: new_array: New numpy array of coordinates in terms of start coordinates
+        """
+        for i in range(0, self.num_of_chars):
+            start_coords = [self.all_coords_dict[i][1][0], \
+                           self.all_coords_dict[i][1][1], 0] #self.start_coords[0], self.start_coords[1], 0
+            add_to_array = np.asarray(start_coords) - np.asarray(self.letter_origin)
+            new_array = letter_array[i] + add_to_array
+            self.all_coords_dict[i].append(new_array)
+        return self.all_coords_dict
 
 
 if __name__ == '__main__':
     word_to_draw = ['A', 'S', 'S', 'H']#, 'O', 'L', 'E']
     workspace_limits = [(-15, 12), (15, 28)]
-    letter_bounding_box = (3, 5/3)
+    letter_bounding_box = (3, 5/3, (0, 20, 8))
     gap_btw_letters = 1
-    distance_from_boundaries = (5, 8)
+    distance_from_boundaries = (5, 5)
+
+    h = np.array([[0, 20, 8], [0, 18, 8], [1, 18, 8]])
+    chars = [h, h, h, h]
 
     trial_draw = Draw(word_to_draw, workspace_limits, letter_bounding_box, gap_btw_letters, distance_from_boundaries)
 
     start_at = trial_draw.det_coords_all_letters()
     print(start_at)
+
+    final_dict = trial_draw.transform_coords_to_start_pos(chars)
+    print(final_dict)

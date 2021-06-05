@@ -12,7 +12,7 @@ class Draw:
     This class draws the letters provided by the user input,
     taking into account workspace area and spacing between letters
     """
-    def __init__(self, list_of_chars, boundary_limits, letter_limits, gap, start_spacing, file_name):
+    def __init__(self, list_of_chars, boundary_limits, letter_limits, gap, start_spacing):
         """
         Saves the input into a class attribute
         :param list_of_chars: Ex: ['a', 'p', 'p', 'l', 'e']
@@ -31,7 +31,6 @@ class Draw:
         :param gap: gap we want to leave between letters (in cms).
         :param start_spacing: (r, u) What space we want to maintain from the right and upper boundary (in cms) (we are writing
         upside-down). NO NEGATIVE VALUES. JUST A MEASURE OF LENGTH
-        :param file_name: file path of letter  coords file
         """
         self.list_of_chars = list_of_chars
         self.num_of_chars = len(list_of_chars)
@@ -58,7 +57,6 @@ class Draw:
 
         self.start_spacing = start_spacing
 
-        self.file_name = file_name
         self.local_coords_dict = {}
 
     def _det_start_coords(self):
@@ -103,37 +101,39 @@ class Draw:
         start from
         :return: new_array: New numpy array of coordinates in terms of start coordinates
         """
+        self.make_input_coords_dict()
+        self.det_coords_all_letters()
         for i in range(0, self.num_of_chars):
             start_coords = [self.all_coords_dict[i][1][0], self.all_coords_dict[i][1][1], 0]
             add_to_array = np.asarray(start_coords) - np.asarray(self.letter_origin)
             new_array = np.asarray(self.local_coords_dict[self.list_of_chars[i]]) + add_to_array
             # new_array = letter_array[i] + add_to_array
             self.all_coords_dict[i].append(new_array)
+
         return self.all_coords_dict
 
     def make_input_coords_dict(self):
         for letter in self.list_of_chars:
             if path.exists("Letters/letter_{}.npy".format(letter)):
                 char_coords = np.load("Letters/letter_{}.npy".format(letter))
-                print("CHAR LOADED IN:", char_coords)
+                print("CHAR LOADED IN:", letter)
                 self.local_coords_dict.update({letter: char_coords})
 
 
 if __name__ == '__main__':
-    word_to_draw = ['O']#user_input.take_user_input()
+    word_to_draw = user_input.take_user_input()
     workspace_limits = [(-15, 12), (15, 28)]
     letter_bounding_box = (3, 5/3, (0, 20, 8))
     gap_btw_letters = 1
-    distance_from_boundaries = (5, 5)
-    file_path = "letter_data.json"
+    distance_from_boundaries = (3, 5)
 
-    trial_draw = Draw(word_to_draw, workspace_limits, letter_bounding_box, gap_btw_letters, distance_from_boundaries, file_path)
+    trial_draw = Draw(word_to_draw, workspace_limits, letter_bounding_box, gap_btw_letters, distance_from_boundaries)
 
-    start_at = trial_draw.det_coords_all_letters()
-    print("START", start_at)
+    # start_at = trial_draw.det_coords_all_letters()
+    # print("START", start_at)
 
-    trial_draw.make_input_coords_dict()
-    print("LOCAL", trial_draw.list_of_chars, trial_draw.local_coords_dict)
+    # trial_draw.make_input_coords_dict()
+    # print("LOCAL", trial_draw.list_of_chars, trial_draw.local_coords_dict)
 
     final_dict = trial_draw.transform_coords_to_start_pos()
     print("REPAIRED:", final_dict)

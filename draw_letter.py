@@ -106,7 +106,7 @@ class Draw:
 
 
 if __name__ == '__main__':
-    word_to_draw = user_input.take_user_input() #['A', 'S', 'S', 'H']#, 'O', 'L', 'E']
+    word_to_draw = user_input.take_user_input()
     workspace_limits = [(-15, 12), (15, 28)]
     letter_bounding_box = (3, 5/3, (0, 20, 8))
     gap_btw_letters = 1

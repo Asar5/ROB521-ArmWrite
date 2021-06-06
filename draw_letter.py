@@ -114,10 +114,14 @@ class Draw:
 
     def make_input_coords_dict(self):
         for letter in self.list_of_chars:
-            if path.exists("Letters/letter_{}.npy".format(letter)):
-                char_coords = np.load("Letters/letter_{}.npy".format(letter))
-                print("CHAR LOADED IN:", letter)
+            print("LETTER: ", letter)
+            fname = "/Users/asar/Desktop/ROB521/Project/ROB521-ArmWrite/Letters/letter_{}.npy".format(letter)
+            if path.exists(fname):
+                char_coords = np.load(fname)
+                print("CHAR LOADED IN:", letter, fname)
                 self.local_coords_dict.update({letter: char_coords})
+            else:
+                print("WTH?", fname)
 
 
 if __name__ == '__main__':

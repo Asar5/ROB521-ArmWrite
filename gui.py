@@ -17,11 +17,25 @@ start_up = 5
 
 gap = 1
 
+from draw_letter import Draw
+import user_input
+
 
 class GUI(QMainWindow):
     def __init__(self):
         """
         """
+        self.ws_point1 = (-15, 12)
+        self.ws_point2 = (15, 28)
+
+        self.font_width = 3
+        self.font_len_wid_ratio = 1.667  # 5/3
+        self.database_start_coords = (0, 20, 8)
+
+        self.start_right = 3
+        self.start_up = 5
+
+        self.gap = 1
         """
         Initial Setup
         Create Window
@@ -29,7 +43,6 @@ class GUI(QMainWindow):
         """
         super(GUI, self).__init__()
         self.setWindowTitle('Set Values')
-
 
         """
         Central Widget
@@ -89,8 +102,6 @@ class GUI(QMainWindow):
         starting_group = QButtonGroup(widget)
         gap_group = QButtonGroup(widget)
 
-
-
         """
         Vertical separations of all options
         """
@@ -123,7 +134,7 @@ class GUI(QMainWindow):
         ws_group.addButton(self.ws_default)
         ws_options.addWidget(self.ws_default)
 
-        self.ws_default_text = QLineEdit("Corner 1: {} Corner 2: {}".format(ws_point1, ws_point2))
+        self.ws_default_text = QLineEdit("Corner 1: {} Corner 2: {}".format(self.ws_point1, self.ws_point2))
         self.ws_default_text.setReadOnly(True)
         ws_options.addWidget(self.ws_default_text)
 
@@ -144,7 +155,7 @@ class GUI(QMainWindow):
         font_group.addButton(self.font_default)
         font_options.addWidget(self.font_default)
 
-        self.font_default_text = QLineEdit("Width: {} Ratio: {}".format(font_width, font_len_wid_ratio))
+        self.font_default_text = QLineEdit("Width: {} Ratio: {}".format(self.font_width, self.font_len_wid_ratio))
         self.font_default_text.setReadOnly(True)
         font_options.addWidget(self.font_default_text)
 
@@ -165,7 +176,7 @@ class GUI(QMainWindow):
         starting_group.addButton(self.starting_default)
         starting_options.addWidget(self.starting_default)
 
-        self.starting_default_text = QLineEdit("Distance from Right boundary: {} Upper boundary: {}".format(start_right, start_up))
+        self.starting_default_text = QLineEdit("Distance from Right boundary: {} Upper boundary: {}".format(self.start_right, self.start_up))
         self.starting_default_text.setReadOnly(True)
         starting_options.addWidget(self.starting_default_text)
 
@@ -186,16 +197,73 @@ class GUI(QMainWindow):
         gap_group.addButton(self.gap_default)
         gap_options.addWidget(self.gap_default)
 
-        self.gap_default_text = QLineEdit("{}".format(gap))
+        self.gap_default_text = QLineEdit("{}".format(self.gap))
         self.gap_default_text.setReadOnly(True)
         gap_options.addWidget(self.gap_default_text)
+
+        """
+        Connect
+        """
+        self.ws_user_input.toggled.connect(lambda: self.connect_text_box(self.ws_user_input_text, 'WS'))
+        self.font_user_input.toggled.connect(lambda: self.connect_text_box(self.font_user_input_text, 'FONT'))
+        self.starting_user_input.toggled.connect(lambda: self.connect_text_box(self.starting_user_input_text, 'START'))
+        self.gap_user_input.toggled.connect(lambda: self.connect_text_box(self.gap_user_input_text, 'GAP'))
+
+        # self.ws_user_input_text.editingFinished(lambda: self.parse_text('WS'))
+        # self.font_user_input_text.editingFinished(lambda: self.parse_text('FONT'))
+        # self.starting_user_input_text.editingFinished(lambda: self.parse_text('START'))
+        # self.gap_user_input_text.editingFinished(lambda: self.parse_text('GAP'))
+
+        self.name_to_draw_lab = QLabel('Enter Word to Draw')
+        outside_layout.addWidget(self.name_to_draw_lab)
+
+        self.name_to_draw = QLineEdit('')
+        outside_layout.addWidget(self.name_to_draw)
+        self.name_to_draw.editingFinished.connect(self.save_word)
 
         """
         Done Button
         """
         self.done_button = QPushButton('OK')
         outside_layout.addWidget(self.done_button)
-        self.done_button.clicked.connect(self.update_json_file)
+        self.done_button.clicked.connect(self.update_options)
+
+    def save_word(self):
+        self.save_text = list(self.sender().text())
+
+    def connect_text_box(self, text_box_with_it, string_to_tell_what_it_is):
+        option = self.sender()
+        if option.isChecked():
+            print("HELLO {}".format(text_box_with_it))
+            text_box_with_it.editingFinished.connect(lambda: self.parse_text(string_to_tell_what_it_is))
+
+    def parse_text(self, string_with_it):
+        if string_with_it == 'WS':
+            text_box = self.sender()
+            text = text_box.text().split(',')
+            print(text)
+            self.ws_point1 = (float(text[0]), float(text[1]))
+            self.ws_point2 = (float(text[2]), float(text[3]))
+        elif string_with_it == 'FONT':
+            text_box = self.sender()
+            text = text_box.text().split(',')
+            print(text)
+            self.font_width = float(text[0])
+            self.font_len_wid_ratio = float(text[1])
+        elif string_with_it == 'START':
+            text_box = self.sender()
+            text = text_box.text().split(',')
+            print(text)
+            self.start_right = float(text[0])
+            self.start_up = float(text[1])
+        else:
+            text_box = self.sender()
+            text = text_box.text()
+            print(text)
+            self.gap = float(text)
+
+    def update_options(self):
+        pass
 
     def convert_to_dict(self, text_to_add):
         new_dict = {}
@@ -221,3 +289,20 @@ if __name__ == '__main__':
     interface.show()
 
     app.exec_()
+
+    word_to_draw = interface.save_text #user_input.take_user_input()
+    workspace_limits = [interface.ws_point1,  interface.ws_point2]
+    letter_bounding_box = (interface.font_width, interface.font_len_wid_ratio, (0, 20, 8))
+    gap_btw_letters = interface.gap
+    distance_from_boundaries = (interface.start_right, interface.start_up)
+
+    trial_draw = Draw(word_to_draw, workspace_limits, letter_bounding_box, gap_btw_letters, distance_from_boundaries)
+
+    # start_at = trial_draw.det_coords_all_letters()
+    # print("START", start_at)
+
+    # trial_draw.make_input_coords_dict()
+    # print("LOCAL", trial_draw.list_of_chars, trial_draw.local_coords_dict)
+
+    final_dict = trial_draw.transform_coords_to_start_pos()
+    print("REPAIRED:", final_dict)
